@@ -7,13 +7,13 @@ export default function App() {
     return saved ? JSON.parse(saved) : [
       {
         id: '1',
-        date: '2026-09-20',
-        userDeck: 'Ahri / Karma',
-        sarahDeck: 'Teemo / Fizz',
+        date: '2026-09-24',
+        userDeck: 'Rengar',
+        sarahDeck: 'Irelia',
         g1Result: 'User',
         g2Result: 'GF',
         g3Result: 'User',
-        MatchesResult: '2 - 1',
+        MatchesResult: '2 - 0',
         winner: 'User'
       }
     ];
@@ -52,7 +52,14 @@ export default function App() {
 
     const newMatch = {
       id: Date.now().toString(),
-      date: new Date().toISOString().split('T')[0],
+date: new Date().toLocaleString([], { 
+  month: 'numeric', 
+  day: 'numeric', 
+  year: 'numeric', 
+  hour: '2-digit', 
+  minute: '2-digit',
+  timeZoneName: 'short'
+}),
       userDeck: formData.userDeck,
       sarahDeck: formData.sarahDeck,
       g1Result: formData.g1Result,
@@ -112,8 +119,9 @@ export default function App() {
             <p className="text-3xl font-extrabold text-slate-700 mt-1">{totalMatches}</p>
           </div>
           <div className="bg-white p-4 rounded-2xl border border-rose-100 shadow-sm text-center">
-            <p className="text-xs text-slate-400 font-bold uppercase">Your Win Rate</p>
-            <p className="text-3xl font-extrabold text-emerald-500 mt-1">{winRate}%</p>
+            <p className="text-xs text-slate-400 font-bold uppercase">Sarah's Love percentage</p>
+            <p className="text-3xl font-extrabold text-pink-500 mt-1">{100}%</p>
+          
           </div>
         </div>
 
@@ -125,10 +133,10 @@ export default function App() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-500 mb-1">Kevin's Deck</label>
+              <label className="block text-xs font-semibold text-slate-500 mb-1">Sarah's Deck</label>
               <input
                 type="text"
-                placeholder="e.g. Ahri / Karma"
+                placeholder="e.g. Ambessa, Rengar"
                 value={formData.userDeck}
                 onChange={(e) => setFormData({ ...formData, userDeck: e.target.value })}
                 className="w-full px-4 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-rose-300 text-sm"
@@ -136,10 +144,10 @@ export default function App() {
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-500 mb-1">Sarah's Deck</label>
+              <label className="block text-xs font-semibold text-slate-500 mb-1">Kevin's Deck</label>
               <input
                 type="text"
-                placeholder="e.g. Teemo / Fizz"
+                placeholder="e.g. Sett, Irelia"
                 value={formData.sarahDeck}
                 onChange={(e) => setFormData({ ...formData, sarahDeck: e.target.value })}
                 className="w-full px-4 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-rose-300 text-sm"
