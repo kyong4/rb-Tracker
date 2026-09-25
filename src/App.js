@@ -7,7 +7,7 @@ export default function App() {
     return saved ? JSON.parse(saved) : [
       {
         id: '1',
-        date: '2026-09-24',
+        date: '2026-09-24, 11:59PM EDT',
         userDeck: 'Rengar',
         sarahDeck: 'Irelia',
         g1Result: 'User',
