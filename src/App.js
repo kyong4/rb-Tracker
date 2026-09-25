@@ -92,20 +92,20 @@ export default function App() {
             <Heart size={16} fill="currentColor" /> Riftbound
           </div>
           <h1 className="text-3xl md:text-4xl font-extrabold text-slate-800">
-            Kevin vs. Sarah ⚔️
+            Kevin vs Sarah ⚔️
           </h1>
-          <p className="text-slate-500 text-sm">Best-of-3 Match & Deck Performance Tracker</p>
+          <p className="text-slate-500 text-sm">BO3 tracker</p>
         </header>
 
         {/* Scoreboard Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-white p-4 rounded-2xl border border-rose-100 shadow-sm text-center">
-            <p className="text-xs text-slate-400 font-bold uppercase">Kevin's Wins</p>
-            <p className="text-3xl font-extrabold text-rose-500 mt-1">{userMatchesWins}</p>
+            <div className="bg-white p-4 rounded-2xl border border-rose-100 shadow-sm text-center">
+            <p className="text-xs text-slate-400 font-bold uppercase">Sarah's Wins</p>
+            <p className="text-3xl font-extrabold text-rose-500 mt-1">{gfMatchesWins}</p>
           </div>
           <div className="bg-white p-4 rounded-2xl border border-rose-100 shadow-sm text-center">
-            <p className="text-xs text-slate-400 font-bold uppercase">Sarah's Wins</p>
-            <p className="text-3xl font-extrabold text-indigo-500 mt-1">{gfMatchesWins}</p>
+            <p className="text-xs text-slate-400 font-bold uppercase">Kevin's Wins</p>
+            <p className="text-3xl font-extrabold text-indigo-500 mt-1">{userMatchesWins}</p>
           </div>
           <div className="bg-white p-4 rounded-2xl border border-rose-100 shadow-sm text-center">
             <p className="text-xs text-slate-400 font-bold uppercase">Total Matches</p>
@@ -125,7 +125,7 @@ export default function App() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-500 mb-1">Your Deck</label>
+              <label className="block text-xs font-semibold text-slate-500 mb-1">Kevin's Deck</label>
               <input
                 type="text"
                 placeholder="e.g. Ahri / Karma"
@@ -136,7 +136,7 @@ export default function App() {
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-500 mb-1">Her Deck</label>
+              <label className="block text-xs font-semibold text-slate-500 mb-1">Sarah's Deck</label>
               <input
                 type="text"
                 placeholder="e.g. Teemo / Fizz"
@@ -159,8 +159,8 @@ export default function App() {
                   onChange={(e) => setFormData({ ...formData, [gameKey]: e.target.value })}
                   className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-rose-300 text-sm bg-white"
                 >
-                  <option value="User">You Won</option>
-                  <option value="GF">She Won</option>
+                  <option value="User">Kevin Won</option>
+                  <option value="GF">Sarah Won</option>
                   {idx === 2 && <option value="None">Not Played (2-0)</option>}
                   <option value="Draw">Draw</option>
                 </select>
@@ -201,16 +201,16 @@ export default function App() {
                     <td className="p-4 text-slate-400 text-xs">{m.date}</td>
                     <td className="p-4 font-semibold text-slate-700">{m.userDeck}</td>
                     <td className="p-4 font-semibold text-slate-700">{m.sarahDeck}</td>
-                    <td className="p-4 text-center font-bold text-slate-600">{m.matchesResult}</td>
+                    <td className="p-4 text-center font-bold text-slate-600">{m.MatchesResult}</td>
                     <td className="p-4 text-center">
                       <span className={`px-3 py-1 rounded-full text-xs font-bold ${
                         m.winner === 'User' 
-                          ? 'bg-rose-100 text-rose-600' 
+                          ? 'bg-slate-100 text-indigo-600' 
                           : m.winner === 'GF' 
-                          ? 'bg-indigo-100 text-indigo-600' 
+                          ? 'bg-rose-100 text-rose-600' 
                           : 'bg-slate-100 text-slate-600'
                       }`}>
-                        {m.winner === 'User' ? 'You' : m.winner === 'GF' ? 'Her' : 'Tie'}
+                        {m.winner === 'User' ? 'Kevin' : m.winner === 'GF' ? 'Sarah' : 'Tie'}
                       </span>
                     </td>
                     <td className="p-4 text-center">
