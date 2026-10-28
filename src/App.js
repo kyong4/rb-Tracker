@@ -1,23 +1,15 @@
 import React, { useState, useEffect } from 'react';
+import { createClient } from '@supabase/supabase-js';
 import { Trophy, Flame, Swords, Plus, Trash2, Heart, Sparkles, Filter, Download } from 'lucide-react';
 
+// Initialize Supabase client
+const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
+const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
 export default function App() {
-  const [matches, setMatches] = useState(() => {
-    const saved = localStorage.getItem('riftbound_matches');
-    return saved ? JSON.parse(saved) : [
-      {
-        id: '1',
-        date: '2026-09-24, 11:59PM EDT',
-        userDeck: 'Rengar',
-        sarahDeck: 'Irelia',
-        g1Result: 'User',
-        g2Result: 'GF',
-        g3Result: 'User',
-        MatchesResult: '2 - 0',
-        winner: 'User'
-      }
-    ];
-  });
+  const [matches, setMatches] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const [formData, setFormData] = useState({
     userDeck: '',
@@ -29,11 +21,27 @@ export default function App() {
 
   const [filterDeck, setFilterDeck] = useState('All');
 
+  // Fetch match history from Supabase on load
   useEffect(() => {
-    localStorage.setItem('riftbound_matches', JSON.stringify(matches));
-  }, [matches]);
+    fetchMatches();
+  }, []);
 
-  const handleAddMatch = (e) => {
+  const fetchMatches = async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from('matches')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching matches:', error);
+    } else {
+      setMatches(data || []);
+    }
+    setLoading(false);
+  };
+
+  const handleAddMatch = async (e) => {
     e.preventDefault();
     if (!formData.userDeck || !formData.sarahDeck) return;
 
@@ -51,15 +59,14 @@ export default function App() {
     else if (gfWins > userWins) winner = 'GF';
 
     const newMatch = {
-      id: Date.now().toString(),
-date: new Date().toLocaleString([], { 
-  month: 'numeric', 
-  day: 'numeric', 
-  year: 'numeric', 
-  hour: '2-digit', 
-  minute: '2-digit',
-  timeZoneName: 'short'
-}),
+      date: new Date().toLocaleString([], { 
+        month: 'numeric', 
+        day: 'numeric', 
+        year: 'numeric', 
+        hour: '2-digit', 
+        minute: '2-digit',
+        timeZoneName: 'short'
+      }),
       userDeck: formData.userDeck,
       sarahDeck: formData.sarahDeck,
       g1Result: formData.g1Result,
@@ -69,25 +76,42 @@ date: new Date().toLocaleString([], {
       winner
     };
 
-    setMatches([newMatch, ...matches]);
-    setFormData({
-      userDeck: '',
-      sarahDeck: '',
-      g1Result: 'User',
-      g2Result: 'User',
-      g3Result: 'None'
-    });
+    const { data, error } = await supabase
+      .from('matches')
+      .insert([newMatch])
+      .select();
+
+    if (error) {
+      console.error('Error inserting match:', error);
+    } else if (data) {
+      setMatches([data[0], ...matches]);
+      setFormData({
+        userDeck: '',
+        sarahDeck: '',
+        g1Result: 'User',
+        g2Result: 'User',
+        g3Result: 'None'
+      });
+    }
   };
 
-  const handleDelete = (id) => {
-    setMatches(matches.filter((m) => m.id !== id));
+  const handleDelete = async (id) => {
+    const { error } = await supabase
+      .from('matches')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error deleting match:', error);
+    } else {
+      setMatches(matches.filter((m) => m.id !== id));
+    }
   };
 
   // Stats calculation
   const totalMatches = matches.length;
   const userMatchesWins = matches.filter((m) => m.winner === 'User').length;
   const gfMatchesWins = matches.filter((m) => m.winner === 'GF').length;
-  const winRate = totalMatches > 0 ? Math.round((userMatchesWins / totalMatches) * 100) : 0;
 
   return (
     <div className="min-h-screen bg-rose-50 text-slate-800 p-4 md:p-8 font-sans">
@@ -106,7 +130,7 @@ date: new Date().toLocaleString([], {
 
         {/* Scoreboard Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-white p-4 rounded-2xl border border-rose-100 shadow-sm text-center">
+          <div className="bg-white p-4 rounded-2xl border border-rose-100 shadow-sm text-center">
             <p className="text-xs text-slate-400 font-bold uppercase">Sarah's Wins</p>
             <p className="text-3xl font-extrabold text-rose-500 mt-1">{gfMatchesWins}</p>
           </div>
@@ -120,8 +144,7 @@ date: new Date().toLocaleString([], {
           </div>
           <div className="bg-white p-4 rounded-2xl border border-rose-100 shadow-sm text-center">
             <p className="text-xs text-slate-400 font-bold uppercase">Sarah's Love percentage</p>
-            <p className="text-3xl font-extrabold text-pink-500 mt-1">{100}%</p>
-          
+            <p className="text-3xl font-extrabold text-pink-500 mt-1">100%</p>
           </div>
         </div>
 
@@ -192,47 +215,51 @@ date: new Date().toLocaleString([], {
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-rose-50/50 text-slate-500 text-xs uppercase">
-                <tr>
-                  <th className="p-4">Date</th>
-                  <th className="p-4">Sarah's Deck</th>
-                  <th className="p-4">Kevin's Deck</th>
-                  <th className="p-4 text-center">BO3 Score</th>
-                  <th className="p-4 text-center">Winner</th>
-                  <th className="p-4 text-center">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {matches.map((m) => (
-                  <tr key={m.id} className="hover:bg-slate-50/80 transition-colors">
-                    <td className="p-4 text-slate-400 text-xs">{m.date}</td>
-                    <td className="p-4 font-semibold text-slate-700">{m.userDeck}</td>
-                    <td className="p-4 font-semibold text-slate-700">{m.sarahDeck}</td>
-                    <td className="p-4 text-center font-bold text-slate-600">{m.MatchesResult}</td>
-                    <td className="p-4 text-center">
-                      <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                        m.winner === 'User' 
-                          ? 'bg-slate-100 text-indigo-600' 
-                          : m.winner === 'GF' 
-                          ? 'bg-rose-100 text-rose-600' 
-                          : 'bg-slate-100 text-slate-600'
-                      }`}>
-                        {m.winner === 'User' ? 'Kevin' : m.winner === 'GF' ? 'Sarah' : 'Tie'}
-                      </span>
-                    </td>
-                    <td className="p-4 text-center">
-                      <button
-                        onClick={() => handleDelete(m.id)}
-                        className="text-slate-300 hover:text-rose-500 transition-colors"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </td>
+            {loading ? (
+              <div className="p-8 text-center text-slate-400 text-sm">Loading matches...</div>
+            ) : (
+              <table className="w-full text-left text-sm">
+                <thead className="bg-rose-50/50 text-slate-500 text-xs uppercase">
+                  <tr>
+                    <th className="p-4">Date</th>
+                    <th className="p-4">Sarah's Deck</th>
+                    <th className="p-4">Kevin's Deck</th>
+                    <th className="p-4 text-center">BO3 Score</th>
+                    <th className="p-4 text-center">Winner</th>
+                    <th className="p-4 text-center">Action</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {matches.map((m) => (
+                    <tr key={m.id} className="hover:bg-slate-50/80 transition-colors">
+                      <td className="p-4 text-slate-400 text-xs">{m.date}</td>
+                      <td className="p-4 font-semibold text-slate-700">{m.userDeck}</td>
+                      <td className="p-4 font-semibold text-slate-700">{m.sarahDeck}</td>
+                      <td className="p-4 text-center font-bold text-slate-600">{m.MatchesResult}</td>
+                      <td className="p-4 text-center">
+                        <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                          m.winner === 'User' 
+                            ? 'bg-slate-100 text-indigo-600' 
+                            : m.winner === 'GF' 
+                            ? 'bg-rose-100 text-rose-600' 
+                            : 'bg-slate-100 text-slate-600'
+                        }`}>
+                          {m.winner === 'User' ? 'Kevin' : m.winner === 'GF' ? 'Sarah' : 'Tie'}
+                        </span>
+                      </td>
+                      <td className="p-4 text-center">
+                        <button
+                          onClick={() => handleDelete(m.id)}
+                          className="text-slate-300 hover:text-rose-500 transition-colors"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         </div>
 
