@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
-import { Trophy, Flame, Swords, Plus, Trash2, Heart, Sparkles, Filter, Download } from 'lucide-react';
+import { Heart, Plus, Sparkles, Trash2 } from 'lucide-react';
 
-// Initialize Supabase client
+// Initialize Supabase client for Create React App
 const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
 const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
@@ -18,8 +18,6 @@ export default function App() {
     g2Result: 'User',
     g3Result: 'None'
   });
-
-  const [filterDeck, setFilterDeck] = useState('All');
 
   // Fetch match history from Supabase on load
   useEffect(() => {
@@ -59,6 +57,7 @@ export default function App() {
     else if (gfWins > userWins) winner = 'GF';
 
     const newMatch = {
+      id: Date.now().toString(),
       date: new Date().toLocaleString([], { 
         month: 'numeric', 
         day: 'numeric', 
@@ -67,12 +66,12 @@ export default function App() {
         minute: '2-digit',
         timeZoneName: 'short'
       }),
-      userDeck: formData.userDeck,
-      sarahDeck: formData.sarahDeck,
-      g1Result: formData.g1Result,
-      g2Result: formData.g2Result,
-      g3Result: formData.g3Result,
-      MatchesResult: `${userWins} - ${gfWins}`,
+      user_deck: formData.userDeck,
+      sarah_deck: formData.sarahDeck,
+      g1_result: formData.g1Result,
+      g2_result: formData.g2Result,
+      g3_result: formData.g3Result,
+      matches_result: `${userWins} - ${gfWins}`,
       winner
     };
 
@@ -142,9 +141,13 @@ export default function App() {
             <p className="text-xs text-slate-400 font-bold uppercase">Total Matches</p>
             <p className="text-3xl font-extrabold text-slate-700 mt-1">{totalMatches}</p>
           </div>
-          <div className="bg-white p-4 rounded-2xl border border-rose-100 shadow-sm text-center">
-            <p className="text-xs text-slate-400 font-bold uppercase">Sarah's Love percentage</p>
-            <p className="text-3xl font-extrabold text-pink-500 mt-1">100%</p>
+<div className="bg-white p-4 rounded-2xl border border-rose-100 shadow-sm text-center">
+            <p className="text-xs text-slate-400 font-bold uppercase">Sarah's Salt Level 🧂</p>
+            <p className="text-3xl font-extrabold text-pink-500 mt-1">
+              {totalMatches > 0 && userMatchesWins > gfMatchesWins 
+                ? Math.round((userMatchesWins / totalMatches) * 100) 
+                : 0}%
+            </p>
           </div>
         </div>
 
@@ -233,9 +236,9 @@ export default function App() {
                   {matches.map((m) => (
                     <tr key={m.id} className="hover:bg-slate-50/80 transition-colors">
                       <td className="p-4 text-slate-400 text-xs">{m.date}</td>
-                      <td className="p-4 font-semibold text-slate-700">{m.userDeck}</td>
-                      <td className="p-4 font-semibold text-slate-700">{m.sarahDeck}</td>
-                      <td className="p-4 text-center font-bold text-slate-600">{m.MatchesResult}</td>
+                      <td className="p-4 font-semibold text-slate-700">{m.user_deck}</td>
+                      <td className="p-4 font-semibold text-slate-700">{m.sarah_deck}</td>
+                      <td className="p-4 text-center font-bold text-slate-600">{m.matches_result}</td>
                       <td className="p-4 text-center">
                         <span className={`px-3 py-1 rounded-full text-xs font-bold ${
                           m.winner === 'User' 
