@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { Heart, Plus, Sparkles, Trash2 } from 'lucide-react';
 
+
 // Initialize Supabase client for Create React App
 const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
 const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
@@ -19,9 +20,31 @@ export default function App() {
     g3Result: 'None'
   });
 
-  // Fetch match history from Supabase on load
+// Fetch match history and subscribe to real-time changes on load
   useEffect(() => {
     fetchMatches();
+
+    // Subscribe to changes on the matches table
+    const channel = supabase
+      .channel('schema-db-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*', // Triggers on INSERT, UPDATE, or DELETE
+          schema: 'public',
+          table: 'matches',
+        },
+        () => {
+          // Re-fetch matches whenever any change happens
+          fetchMatches();
+        }
+      )
+      .subscribe();
+
+    // Clean up subscription when component unmounts
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const fetchMatches = async () => {
@@ -129,19 +152,22 @@ export default function App() {
 
         {/* Scoreboard Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+
+          <div className="bg-white p-4 rounded-2xl border border-rose-100 shadow-sm text-center">
+            <p className="text-xs text-slate-400 font-bold uppercase">Kevin's Wins</p>
+            <p className="text-3xl font-extrabold text-indigo-500 mt-1">{userMatchesWins}</p>
+          </div>
+
           <div className="bg-white p-4 rounded-2xl border border-rose-100 shadow-sm text-center">
             <p className="text-xs text-slate-400 font-bold uppercase">Sarah's Wins</p>
             <p className="text-3xl font-extrabold text-rose-500 mt-1">{gfMatchesWins}</p>
           </div>
           <div className="bg-white p-4 rounded-2xl border border-rose-100 shadow-sm text-center">
-            <p className="text-xs text-slate-400 font-bold uppercase">Kevin's Wins</p>
-            <p className="text-3xl font-extrabold text-indigo-500 mt-1">{userMatchesWins}</p>
-          </div>
-          <div className="bg-white p-4 rounded-2xl border border-rose-100 shadow-sm text-center">
             <p className="text-xs text-slate-400 font-bold uppercase">Total Matches</p>
             <p className="text-3xl font-extrabold text-slate-700 mt-1">{totalMatches}</p>
           </div>
-<div className="bg-white p-4 rounded-2xl border border-rose-100 shadow-sm text-center">
+
+          <div className="bg-white p-4 rounded-2xl border border-rose-100 shadow-sm text-center">
             <p className="text-xs text-slate-400 font-bold uppercase">Sarah's Salt Level 🧂</p>
             <p className="text-3xl font-extrabold text-pink-500 mt-1">
               {totalMatches > 0 && userMatchesWins > gfMatchesWins 
@@ -159,10 +185,10 @@ export default function App() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-500 mb-1">Sarah's Deck</label>
+              <label className="block text-xs font-semibold text-slate-500 mb-1">Kevin's Deck</label>
               <input
                 type="text"
-                placeholder="e.g. Ambessa, Rengar"
+                placeholder="e.g. Sett, Irelia"
                 value={formData.userDeck}
                 onChange={(e) => setFormData({ ...formData, userDeck: e.target.value })}
                 className="w-full px-4 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-rose-300 text-sm"
@@ -170,10 +196,10 @@ export default function App() {
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-500 mb-1">Kevin's Deck</label>
+              <label className="block text-xs font-semibold text-slate-500 mb-1">Sarah's Deck</label>
               <input
                 type="text"
-                placeholder="e.g. Sett, Irelia"
+                placeholder="e.g. Ambessa, Rengar"
                 value={formData.sarahDeck}
                 onChange={(e) => setFormData({ ...formData, sarahDeck: e.target.value })}
                 className="w-full px-4 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-rose-300 text-sm"
@@ -225,8 +251,8 @@ export default function App() {
                 <thead className="bg-rose-50/50 text-slate-500 text-xs uppercase">
                   <tr>
                     <th className="p-4">Date</th>
-                    <th className="p-4">Sarah's Deck</th>
                     <th className="p-4">Kevin's Deck</th>
+                    <th className="p-4">Sarah's Deck</th>
                     <th className="p-4 text-center">BO3 Score</th>
                     <th className="p-4 text-center">Winner</th>
                     <th className="p-4 text-center">Action</th>
